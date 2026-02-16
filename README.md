@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YouTube Comments Analyzer
 
-## Getting Started
+Ever wonder what your audience is really asking for? The YouTube Comments Analyzer scans viewer comments to surface content suggestions, improvement ideas, and collaboration opportunities — so you can focus on creating what your audience actually wants.
 
-First, run the development server:
+## Problem Solved
+
+Reading through hundreds of YouTube comments to find actionable feedback is tedious. This tool addresses that by:
+
+1. **Extracting Content Ideas**: Automatically identifies comments suggesting new video topics.
+2. **Surfacing Improvements**: Finds viewer feedback on what could be better.
+3. **Spotting Collaborations**: Highlights comments mentioning potential partnerships or collaborations.
+
+## Situations Where This Tool Can Save You
+
+1. **Content Planning**: Quickly discover what your audience wants to see next.
+2. **Audience Engagement**: Identify and respond to viewers who are actively contributing ideas.
+3. **Channel Growth**: Make data-driven decisions about your content strategy based on real viewer feedback.
+4. **Competitive Research**: Analyze comments on any public YouTube video to understand audience sentiment.
+
+## Installation and Setup
+
+### Prerequisites
+
+- Node.js 20 or higher
+- A [Google API key](https://aistudio.google.com/api-keys) with **YouTube Data API v3** and **Generative Language API** enabled
+
+### Step-by-Step Installation
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/Stevealila/YouTube-Comments-Analyzer.git
+   cd YouTube-Comments-Analyzer
+   ```
+
+2. **Install Dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set Up Environment Variables**
+
+   Copy the example env file and fill in your API key:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Then edit `.env` and add your `GOOGLE_API_KEY`.
+
+### Running the Application Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open your browser at `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Enter the YouTube Video URL**
 
-## Learn More
+   In the input field, paste the URL of the YouTube video you want to analyze.
 
-To learn more about Next.js, take a look at the following resources:
+2. **Analyze**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   Click the "Analyze" button. The tool will fetch the video's comments, run them through Google Gemini, and display content suggestions with links to the original commenters.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Acknowledgments
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Google](https://ai.google.dev/) for Gemini.
+- [LangChain](https://www.langchain.com/) for the AI chain framework.
+- [Next.js](https://nextjs.org/) for the web application framework.
