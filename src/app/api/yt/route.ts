@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-// @ts-ignore
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI } from "@langchain/openai";
+import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || process.env.GOOGLE_API_KEY;
+
+type Provider = "groq" | "gemini" | "openai" | "anthropic";
 
 type Comment = {
     comment: string;
@@ -12,12 +17,37 @@ type Comment = {
     author_channel: string;
 };
 
+function createModel(provider: Provider, apiKey: string): BaseChatModel {
+    switch (provider) {
+        case "gemini":
+            // @ts-ignore
+            return new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash", apiKey });
+        case "openai":
+            return new ChatOpenAI({ model: "gpt-4o-mini", apiKey }) as unknown as BaseChatModel;
+        case "anthropic":
+            return new ChatAnthropic({ model: "claude-3-5-haiku-20241022", apiKey }) as unknown as BaseChatModel;
+        case "groq":
+            return new ChatGroq({ model: "llama-3.3-70b-versatile", apiKey }) as unknown as BaseChatModel;
+        default:
+            throw new Error(`Unsupported provider: ${provider}`);
+    }
+}
 
 export async function POST(req: NextRequest) {
     try {
-        const { videoUrl } = await req.json();
+        const { videoUrl, provider, apiKey } = await req.json();
+
         if (!videoUrl) {
             return NextResponse.json({ error: "Video URL is required" }, { status: 400 });
+        }
+        if (!provider || !apiKey) {
+            return NextResponse.json({ error: "LLM provider and API key are required" }, { status: 400 });
+        }
+        if (!["groq", "gemini", "openai", "anthropic"].includes(provider)) {
+            return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
+        }
+        if (!YOUTUBE_API_KEY) {
+            return NextResponse.json({ error: "YouTube API key is not configured on the server" }, { status: 500 });
         }
 
         const videoId = getVideoId(videoUrl);
@@ -26,7 +56,7 @@ export async function POST(req: NextRequest) {
         }
 
         const comments = await fetchComments(videoId);
-        const suggestions = await analyzeComments(comments);
+        const suggestions = await analyzeComments(comments, provider as Provider, apiKey);
 
         return NextResponse.json({ videoId, suggestions });
     } catch (error) {
@@ -61,7 +91,7 @@ function getVideoId(url: string): string | null {
 
 
 async function fetchComments(videoId: string): Promise<Comment[]> {
-    const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId=${videoId}&maxResults=100&order=relevance&key=${GOOGLE_API_KEY}`;
+    const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId=${videoId}&maxResults=100&order=relevance&key=${YOUTUBE_API_KEY}`;
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -79,13 +109,23 @@ async function fetchComments(videoId: string): Promise<Comment[]> {
 }
 
 
-async function analyzeComments(comments: Comment[]): Promise<string> {
-    const model = new ChatGoogleGenerativeAI({ model: "gemini-2.5-flash", apiKey: GOOGLE_API_KEY });
+async function analyzeComments(comments: Comment[], provider: Provider, apiKey: string): Promise<string> {
+    const model = createModel(provider, apiKey);
 
     const prompt = ChatPromptTemplate.fromTemplate(`
         You are an expert in audience engagement and content strategy.
         Extract YouTube comments that suggest new video topics, improvements, or collaborations.
-        If no such comments exist, return an empty array.
+        Return ONLY a JSON array wrapped in \`\`\`json code blocks with this exact structure:
+        \`\`\`json
+        [
+          {{
+            "comment": "the comment text",
+            "author_name": "commenter name",
+            "author_channel": "channel URL"
+          }}
+        ]
+        \`\`\`
+        If no such comments exist, return: \`\`\`json\n[]\n\`\`\`
 
         Here are the comments:
         {comments}
