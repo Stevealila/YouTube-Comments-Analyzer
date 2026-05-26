@@ -27,7 +27,7 @@ function createModel(provider: Provider, apiKey: string): BaseChatModel {
         case "anthropic":
             return new ChatAnthropic({ model: "claude-3-5-haiku-20241022", apiKey }) as unknown as BaseChatModel;
         case "groq":
-            return new ChatGroq({ model: "llama-3.3-70b-versatile", apiKey }) as unknown as BaseChatModel;
+            return new ChatGroq({ model: "openai/gpt-oss-120b", apiKey }) as unknown as BaseChatModel;
         default:
             throw new Error(`Unsupported provider: ${provider}`);
     }

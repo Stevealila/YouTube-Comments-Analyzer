@@ -12,7 +12,7 @@ interface Comment {
 }
 
 const PROVIDER_LABELS: Record<Provider, string> = {
-    groq: "Groq (Llama 3.3 70B)",
+    groq: "Groq (GPT-OSS 120B)",
     gemini: "Google Gemini 2.5 Flash",
     openai: "OpenAI GPT-4o Mini",
     anthropic: "Anthropic Claude 3.5 Haiku",
