@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "overrides": {
+    "postcss": "^8.5.15"
+  },
   "dependencies": {
     "@langchain/anthropic": "^1.4.0",
     "@langchain/core": "^1.1.24",
@@ -15,7 +18,7 @@
     "@langchain/groq": "^1.2.1",
     "@langchain/openai": "^1.4.7",
     "he": "^1.2.0",
-    "next": "16.1.6",
+    "next": "^16.2.9",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },

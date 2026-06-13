@@ -26,8 +26,17 @@ function createModel(provider: Provider, apiKey: string): BaseChatModel {
             return new ChatOpenAI({ model: "gpt-4o-mini", apiKey }) as unknown as BaseChatModel;
         case "anthropic":
             return new ChatAnthropic({ model: "claude-3-5-haiku-20241022", apiKey }) as unknown as BaseChatModel;
-        case "groq":
-            return new ChatGroq({ model: "openai/gpt-oss-120b", apiKey }) as unknown as BaseChatModel;
+        case "groq": {
+            // gpt-oss-120b is a reasoning model. By default its content can
+            // include the analysis/reasoning channel, which breaks JSON parsing.
+            // reasoning_format "hidden" makes the API return only the final
+            // answer. @langchain/groq 1.2.1 never assigns this from the
+            // constructor or call options (it only reads `this.reasoningFormat`
+            // in invocationParams), so set the instance field directly.
+            const groq = new ChatGroq({ model: "openai/gpt-oss-120b", apiKey });
+            (groq as unknown as { reasoningFormat?: string }).reasoningFormat = "hidden";
+            return groq as unknown as BaseChatModel;
+        }
         default:
             throw new Error(`Unsupported provider: ${provider}`);
     }

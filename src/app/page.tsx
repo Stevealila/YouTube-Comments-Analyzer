@@ -26,19 +26,29 @@ const PROVIDER_KEY_LINKS: Record<Provider, string> = {
 };
 
 function parseComments(raw: string): Comment[] {
-    const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (jsonMatch) return JSON.parse(jsonMatch[1].trim());
+    // Reasoning models can leak a <think>...</think> analysis channel into the
+    // content; drop it before looking for the JSON answer.
+    const cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+
+    const jsonMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+        try {
+            return JSON.parse(jsonMatch[1].trim());
+        } catch {
+            // fall through to the looser matchers below
+        }
+    }
     try {
-        return JSON.parse(raw.trim());
+        return JSON.parse(cleaned);
     } catch {
-        const arrayMatch = raw.match(/\[[\s\S]*\]/);
+        const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
         if (arrayMatch) return JSON.parse(arrayMatch[0]);
     }
     throw new Error("Could not parse AI response — try again or switch providers");
 }
 
 const YouTubeTool = () => {
-    const [provider, setProvider] = useState<Provider>("gemini");
+    const [provider, setProvider] = useState<Provider>("groq");
     const [apiKey, setApiKey] = useState("");
     const [showKey, setShowKey] = useState(false);
     const [videoUrl, setVideoUrl] = useState("");
@@ -154,7 +164,7 @@ const YouTubeTool = () => {
                     <button
                         onClick={handleFetchComments}
                         disabled={!canAnalyze}
-                        className="bg-blue-500 text-white p-3 rounded-md min-w-[120px] hover:bg-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="bg-blue-500 text-white p-3 rounded-md min-w-30 hover:bg-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         {loading ? "Analyzing..." : "Analyze"}
                     </button>
